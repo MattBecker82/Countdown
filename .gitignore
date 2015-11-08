@@ -6,3 +6,8 @@
 *.pidb
 *.resources
 test-results/
+
+#Output files
+*/bin/
+*/obj/
+
