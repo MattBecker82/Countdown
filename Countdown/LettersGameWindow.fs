@@ -4,12 +4,12 @@ open System
 open GLib
 open Gtk
 open Countdown.LetterPicker
-open Countdown.Ticker
 
 type LettersGameWindow(letterPicker: LetterPicker) as this =
     inherit Window("Letters Game")
 
     do this.SetDefaultSize(400, 300)
+    do this.KeyPressEvent.AddHandler(fun o e -> this.WindowKeyPress(o,e))
 
     let vbox = new VBox(true, 5)
 
@@ -39,15 +39,20 @@ type LettersGameWindow(letterPicker: LetterPicker) as this =
     do vbox.PackStart(progressBar)
 
     let userWord = new Entry()
+    do userWord.KeyPressEvent.AddHandler(fun o e -> this.UserWordKeyPress(o, e))
     do userWord.Sensitive <- false
     do vbox.PackStart(userWord)
 
-    let userWordList = new Gtk.TreeView(new ListStore(GLib.GType.String))
-    do new TreeViewColumn("Your words", new Gtk.CellRendererText())
-        |> userWordList.AppendColumn
+    let userWordListModel = new ListStore(GLib.GType.String)
+    let userWordListView = new Gtk.TreeView(userWordListModel)
+    do new TreeViewColumn("Word", new CellRendererText())
+        |> userWordListView.AppendColumn
         |> ignore
-    do userWordList.Sensitive <- false
-    do vbox.PackStart(userWordList)
+    do new TreeViewColumn("Score", new CellRendererText())
+        |> userWordListView.AppendColumn
+        |> ignore
+    do userWordListView.Sensitive <- false
+    do vbox.PackStart(userWordListView)
 
     do this.Add(vbox)
 
@@ -69,7 +74,7 @@ type LettersGameWindow(letterPicker: LetterPicker) as this =
 
     let stopClock() =
         do userWord.Sensitive <- false
-        do userWordList.Sensitive <- false
+        do userWordListView.Sensitive <- false
         do progressBar.Sensitive <- false
         ()
         
@@ -84,6 +89,10 @@ type LettersGameWindow(letterPicker: LetterPicker) as this =
         do elapsed <- 0u
         GLib.Timeout.Add(interval, new GLib.TimeoutHandler(tick)) |> ignore
 
+    let enterWord (word : string) =
+        do userWordListModel.AppendValues(word) |> ignore
+        userWord.Text <- ""
+
     member this.ConsonantClicked(o, e) =
         letterPicker.pickConsonant() |> addCharToSource
 
@@ -92,8 +101,19 @@ type LettersGameWindow(letterPicker: LetterPicker) as this =
 
     member this.StartClicked(o, e) =
         do userWord.Sensitive <- true
-        do userWordList.Sensitive <- true
+        do userWord.Activate() |> ignore
+        do userWordListView.Sensitive <- true
         do progressBar.Sensitive <- true
         do startButton.Sensitive <- false
         startClock()
 
+    member this.WindowKeyPress(o, e : KeyPressEventArgs) =
+        if e.Event.Key = Gdk.Key.Return then
+            if userWord.Sensitive && userWord.IsFocus && userWord.Text <> "" then
+                enterWord (userWord.Text)
+    
+    member this.UserWordKeyPress(o, e : KeyPressEventArgs) =
+        if e.Event.Key = Gdk.Key.Return then
+            let word = userWord.Text
+            if word.Length > 0 then
+                do enterWord word
