@@ -22,7 +22,7 @@ module MainWindow =
             e.RetVal <- true
 
         member this.OnLettersClicked(o, e) =
-            let rand = uniform 42
+            let rand = uniform (int (DateTime.Now.ToFileTime()))
             let lp = letterPicker (uniformPicker rand "BCDFGHJKLMNPQRSTVWXYZ") (uniformPicker rand "AEIOU")
             let win = new LettersGameWindow(lp)
             do win.Show()
