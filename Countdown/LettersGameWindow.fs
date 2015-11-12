@@ -9,7 +9,6 @@ type LettersGameWindow(letterPicker: LetterPicker) as this =
     inherit Window("Letters Game")
 
     do this.SetDefaultSize(400, 300)
-    do this.KeyPressEvent.AddHandler(fun o e -> this.WindowKeyPress(o,e))
 
     let vbox = new VBox(true, 5)
 
@@ -39,7 +38,7 @@ type LettersGameWindow(letterPicker: LetterPicker) as this =
     do vbox.PackStart(progressBar)
 
     let userWord = new Entry()
-    do userWord.KeyPressEvent.AddHandler(fun o e -> this.UserWordKeyPress(o, e))
+    do userWord.Activated.AddHandler(fun o e -> this.UserWordActivated(o, e))
     do userWord.Sensitive <- false
     do vbox.PackStart(userWord)
 
@@ -93,6 +92,8 @@ type LettersGameWindow(letterPicker: LetterPicker) as this =
         do userWordListModel.AppendValues(word) |> ignore
         userWord.Text <- ""
 
+    override this.ToString() = "Fooooooo"
+
     member this.ConsonantClicked(o, e) =
         letterPicker.pickConsonant() |> addCharToSource
 
@@ -106,14 +107,8 @@ type LettersGameWindow(letterPicker: LetterPicker) as this =
         do progressBar.Sensitive <- true
         do startButton.Sensitive <- false
         startClock()
-
-    member this.WindowKeyPress(o, e : KeyPressEventArgs) =
-        if e.Event.Key = Gdk.Key.Return then
-            if userWord.Sensitive && userWord.IsFocus && userWord.Text <> "" then
-                enterWord (userWord.Text)
     
-    member this.UserWordKeyPress(o, e : KeyPressEventArgs) =
-        if e.Event.Key = Gdk.Key.Return then
-            let word = userWord.Text
-            if word.Length > 0 then
-                do enterWord word
+    member this.UserWordActivated(o, e) =
+        let word = userWord.Text
+        if word.Length > 0 then
+            do enterWord word
