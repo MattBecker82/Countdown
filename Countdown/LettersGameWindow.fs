@@ -70,8 +70,8 @@ type LettersGameWindow(letterPicker: LetterPicker) as this =
 
     let stopClock() =
         do userWord.Sensitive <- false
-        do userWordListView.Sensitive <- false
         do progressBar.Sensitive <- false
+        do userWordListView.Sensitive <- true
         ()
         
     let tick() =
@@ -98,7 +98,6 @@ type LettersGameWindow(letterPicker: LetterPicker) as this =
     member this.StartClicked(o, e) =
         do userWord.Sensitive <- true
         do userWord.Activate() |> ignore
-        do userWordListView.Sensitive <- true
         do progressBar.Sensitive <- true
         do startButton.Sensitive <- false
         startClock()

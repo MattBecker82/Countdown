@@ -23,6 +23,6 @@ module MainWindow =
 
         member this.OnLettersClicked(o, e) =
             let rand = uniform (int (DateTime.Now.ToFileTime()))
-            let lp = letterPicker (uniformPicker rand "BCDFGHJKLMNPQRSTVWXYZ") (uniformPicker rand "AEIOU")
+            let lp = englishPicker rand
             let win = new LettersGameWindow(lp)
             do win.Show()

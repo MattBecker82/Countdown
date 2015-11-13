@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="LetterPicker.fs" />
+    <Compile Include="Letters.fs" />
     <Compile Include="LettersGameWindow.fs" />
     <Compile Include="MainWindow.fs" />
     <Compile Include="Main.fs" />
