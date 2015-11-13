@@ -24,3 +24,10 @@ let rec isSubListOf (left: 'T list) (right: 'T list) =
 // Return true iff word is an anagram of some subset of letters from selection
 let isFromSelection (selection: LetterSelection) (word: Word) =
     isSubListOf (normalize word) (normalize selection)
+
+// Compute the score for a given word and selection
+// TODO: Take into account dictionary
+let score (selection: LetterSelection) (word: Word) =
+    if isFromSelection selection word
+        then word.Trim().Length
+        else 0

@@ -44,6 +44,7 @@ type LettersGameWindow(letterPicker: LetterPicker) as this =
 
     let userWordListModel = new ListStore(typeof<string>)
     let userWordListView = new TreeView(userWordListModel)
+    do userWordListView.RowActivated.AddHandler(fun o e -> this.UserWordListActivated(o, e))
     do new TreeViewColumn("Word", new CellRendererText(), "text", 0)
         |> userWordListView.AppendColumn
         |> ignore
@@ -89,6 +90,15 @@ type LettersGameWindow(letterPicker: LetterPicker) as this =
         do userWordListModel.AppendValues(word, "tba") |> ignore
         userWord.Text <- ""
 
+    let showScore (word : string) =
+        let word' = word.Trim().ToUpper()
+        let sc = Letters.score sourceLetters.Text word'
+        let msg = sprintf "Your word: %s\nScore: %d" word' sc
+        let msgBox = new MessageDialog(this, DialogFlags.Modal, MessageType.Info, ButtonsType.Close, msg)
+        do msgBox.Run() |> ignore
+        do msgBox.Destroy()
+        ()
+
     member this.ConsonantClicked(o, e) =
         letterPicker.pickConsonant() |> addCharToSource
 
@@ -106,3 +116,11 @@ type LettersGameWindow(letterPicker: LetterPicker) as this =
         let word = userWord.Text
         if word.Length > 0 then
             do enterWord word
+    
+    member this.UserWordListActivated(o, e) =
+        let mutable model = null :> TreeModel
+        let mutable iter = new TreeIter()
+        if userWordListView.Selection.GetSelected(&model, &iter) then
+            let word = model.GetValue(iter, 0) :?> string
+            showScore word
+
