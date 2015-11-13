@@ -42,12 +42,9 @@ type LettersGameWindow(letterPicker: LetterPicker) as this =
     do userWord.Sensitive <- false
     do vbox.PackStart(userWord)
 
-    let userWordListModel = new ListStore(GLib.GType.String)
-    let userWordListView = new Gtk.TreeView(userWordListModel)
-    do new TreeViewColumn("Word", new CellRendererText())
-        |> userWordListView.AppendColumn
-        |> ignore
-    do new TreeViewColumn("Score", new CellRendererText())
+    let userWordListModel = new ListStore(typeof<string>)
+    let userWordListView = new TreeView(userWordListModel)
+    do new TreeViewColumn("Word", new CellRendererText(), "text", 0)
         |> userWordListView.AppendColumn
         |> ignore
     do userWordListView.Sensitive <- false
@@ -89,10 +86,8 @@ type LettersGameWindow(letterPicker: LetterPicker) as this =
         GLib.Timeout.Add(interval, new GLib.TimeoutHandler(tick)) |> ignore
 
     let enterWord (word : string) =
-        do userWordListModel.AppendValues(word) |> ignore
+        do userWordListModel.AppendValues(word, "tba") |> ignore
         userWord.Text <- ""
-
-    override this.ToString() = "Fooooooo"
 
     member this.ConsonantClicked(o, e) =
         letterPicker.pickConsonant() |> addCharToSource
