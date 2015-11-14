@@ -4,8 +4,9 @@ open System
 open GLib
 open Gtk
 open Countdown.LetterPicker
+open Countdown.Letters
 
-type LettersGameWindow(letterPicker: LetterPicker) as this =
+type LettersGameWindow(wordList: WordList, letterPicker: LetterPicker) as this =
     inherit Window("Letters Game")
 
     do this.SetDefaultSize(400, 300)
@@ -92,8 +93,8 @@ type LettersGameWindow(letterPicker: LetterPicker) as this =
 
     let showScore (word : string) =
         let word' = word.Trim().ToUpper()
-        let sc = Letters.score sourceLetters.Text word'
-        let msg = sprintf "Your word: %s\nScore: %d" word' sc
+        let sc = lettersGameResult wordList sourceLetters.Text word' |> scoreMessage
+        let msg = sprintf "%s\nYour word: %s\nScore: %s" sourceLetters.Text word' sc
         let msgBox = new MessageDialog(this, DialogFlags.Modal, MessageType.Info, ButtonsType.Close, msg)
         do msgBox.Run() |> ignore
         do msgBox.Destroy()
@@ -107,7 +108,7 @@ type LettersGameWindow(letterPicker: LetterPicker) as this =
 
     member this.StartClicked(o, e) =
         do userWord.Sensitive <- true
-        do userWord.Activate() |> ignore
+        do userWord.GrabFocus()
         do progressBar.Sensitive <- true
         do startButton.Sensitive <- false
         startClock()

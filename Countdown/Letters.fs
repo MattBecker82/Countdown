@@ -25,9 +25,36 @@ let rec isSubListOf (left: 'T list) (right: 'T list) =
 let isFromSelection (selection: LetterSelection) (word: Word) =
     isSubListOf (normalize word) (normalize selection)
 
+type WordList = Set<Word>
+
+// Load word list from file (already normalized) and place in set
+let loadWordList (filePath : string) =
+    let lines = System.IO.File.ReadLines(filePath)
+    new WordList(lines)
+
+// Represent the score from a letters game
+type LettersGameResult =
+    | Valid of int
+    | WordNotInList
+    | WordNotFromSelection
+
+let score (result: LettersGameResult) =
+    match result with
+    | Valid x -> x
+    | _ -> 0
+
+let scoreMessage (result: LettersGameResult) =
+    match result with
+    | Valid x -> sprintf "%d" x
+    | WordNotInList -> "0 (word not in word list)"
+    | WordNotFromSelection -> "0 (word could not be formed from selected letters)"
+
 // Compute the score for a given word and selection
-// TODO: Take into account dictionary
-let score (selection: LetterSelection) (word: Word) =
-    if isFromSelection selection word
-        then word.Trim().Length
-        else 0
+let lettersGameResult (wordList : WordList) (selection: LetterSelection) (word: Word) =
+    if not (isFromSelection selection word) then
+        WordNotFromSelection
+    elif not (wordList.Contains(word)) then
+        WordNotInList
+    else
+        let l = word.Trim().Length
+        if l < 9 then (Valid l) else (Valid (2*l))
