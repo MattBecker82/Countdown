@@ -71,3 +71,4 @@ let solveLetters (wordList : WordList) (selection: LetterSelection) =
         |> Seq.filter (isFromSelection selection)
         |> Seq.fold checkNext ([],0)
         |> fst
+        |> List.rev
