@@ -60,4 +60,14 @@ let lettersGameResult (wordList : WordList) (selection: LetterSelection) (word: 
         if l < 9 then (Valid l) else (Valid (2*l))
 
 let solveLetters (wordList : WordList) (selection: LetterSelection) =
-    [""]
+    let checkNext (ws,len) (word : string) =
+        if (word.Length < len) then
+            (ws,len)
+        elif (word.Length = len) then
+            (word::ws,len)
+        else
+            ([word],word.Length)
+    wordList
+        |> Seq.filter (isFromSelection selection)
+        |> Seq.fold checkNext ([],0)
+        |> fst

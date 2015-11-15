@@ -1,6 +1,7 @@
 ﻿module Countdown.LettersGameWindow
 
 open System
+open System.Threading.Tasks
 open GLib
 open Gtk
 open Countdown.LetterPicker
@@ -52,6 +53,11 @@ type LettersGameWindow(wordList: WordList, letterPicker: LetterPicker) as this =
     do userWordListView.Sensitive <- false
     do vbox.PackStart(userWordListView)
 
+    let answersButton = new Button("Answers")
+    do answersButton.Clicked.AddHandler(fun o e -> this.AnswersClicked(o, e))
+    do answersButton.Sensitive <- false
+    do vbox.PackStart(answersButton)
+
     do this.Add(vbox)
 
     do this.ShowAll()
@@ -70,10 +76,13 @@ type LettersGameWindow(wordList: WordList, letterPicker: LetterPicker) as this =
     let interval = 100u
     let totalTime = 30000u
 
+    let mutable (solverTask : Task<Word list>) = null
+
     let stopClock() =
         do userWord.Sensitive <- false
         do progressBar.Sensitive <- false
         do userWordListView.Sensitive <- true
+        do answersButton.Sensitive <- true
         ()
         
     let tick() =
@@ -91,14 +100,31 @@ type LettersGameWindow(wordList: WordList, letterPicker: LetterPicker) as this =
         do userWordListModel.AppendValues(word, "tba") |> ignore
         userWord.Text <- ""
 
-    let showScore (word : string) =
-        let word' = word.Trim().ToUpper()
-        let sc = lettersGameResult wordList sourceLetters.Text word' |> scoreMessage
-        let msg = sprintf "%s\nYour word: %s\nScore: %s" sourceLetters.Text word' sc
+    let showMessage (msg : string) =
         let msgBox = new MessageDialog(this, DialogFlags.Modal, MessageType.Info, ButtonsType.Close, msg)
         do msgBox.Run() |> ignore
         do msgBox.Destroy()
         ()
+
+    let showScore (word : string) =
+        let word' = word.Trim().ToUpper()
+        let sc = lettersGameResult wordList sourceLetters.Text word' |> scoreMessage
+        let msg = sprintf "Letters: %s\nYour word: %s\nScore: %s" sourceLetters.Text word' sc
+        showMessage msg
+
+    let showAnswers() =
+        do solverTask.Wait()
+        let answers =
+            solverTask.Result
+                |> List.map (fun s -> sprintf " %s (%d)" s s.Length)
+
+        let answersMsg =
+            match answers with
+                | [] -> "No answers"
+                | [x] -> sprintf "Best answer:%s" x
+                | _ -> sprintf "Best answers:\n%s" (String.concat "\n" answers)
+        let msg = sprintf "Letters: %s\n%s" sourceLetters.Text answersMsg
+        showMessage msg
 
     member this.ConsonantClicked(o, e) =
         letterPicker.pickConsonant() |> addCharToSource
@@ -111,6 +137,8 @@ type LettersGameWindow(wordList: WordList, letterPicker: LetterPicker) as this =
         do userWord.GrabFocus()
         do progressBar.Sensitive <- true
         do startButton.Sensitive <- false
+        let solver = async { return solveLetters wordList sourceLetters.Text }
+        solverTask <- Async.StartAsTask(solver)
         startClock()
     
     member this.UserWordActivated(o, e) =
@@ -125,3 +153,6 @@ type LettersGameWindow(wordList: WordList, letterPicker: LetterPicker) as this =
             let word = model.GetValue(iter, 0) :?> string
             showScore word
 
+    member this.AnswersClicked(o, e) =
+        do userWordListView.Sensitive <- false
+        showAnswers()
