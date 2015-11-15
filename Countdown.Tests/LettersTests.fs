@@ -57,7 +57,20 @@ let solveLettersAreLongerThanOrEqualToMatches (wordList : WordList) (selection: 
             let minLen = words |> List.map String.length |> List.min
             Seq.forall (fun (w : Word) -> w.Length <= minLen) allMatches    
 
+let solveLettersIfMatchMissingItMustBeShorter (wordList : WordList) (selection: LetterSelection) =
+    let words = new Set<Word>(solveLetters wordList selection)
+    let allMatches = wordList |> Seq.filter (isFromSelection selection)
+    if Seq.isEmpty allMatches then
+        words.IsEmpty
+    else
+        if Seq.isEmpty words then
+            false
+        else
+            let maxLen = words |> Seq.map String.length |> Seq.max
+            Seq.forall (fun (w : Word) -> words.Contains(w) || w.Length < maxLen) allMatches    
+
 let runLettersTests() =
     do Check.Quick solveLettersReturnsValidWords
     do Check.Quick solveLettersReturnsAllSameLength
     do Check.Quick solveLettersAreLongerThanOrEqualToMatches
+    do Check.Quick solveLettersIfMatchMissingItMustBeShorter
