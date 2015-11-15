@@ -58,3 +58,6 @@ let lettersGameResult (wordList : WordList) (selection: LetterSelection) (word: 
     else
         let l = word.Trim().Length
         if l < 9 then (Valid l) else (Valid (2*l))
+
+let solveLetters (wordList : WordList) (selection: LetterSelection) =
+    [""]

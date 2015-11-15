@@ -11,3 +11,7 @@ test-results/
 */bin/
 */obj/
 
+#NuGet relates files
+packages/
+.nuget/
+
